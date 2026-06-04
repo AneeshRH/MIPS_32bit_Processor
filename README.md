@@ -1,51 +1,48 @@
-# MIPS 32-bit 5-Stage Pipelined Processor
+# 32-Bit MIPS Pipelined Processor (5-Stage)
 
-This project is a 32-bit MIPS-based processor built using Verilog. It implements a 5-stage pipeline: **IF, ID, EX, MEM, WB**. It also includes support for **forwarding**, **branch**, and **jump** instructions.
-
----
-
-## 🚀 Features
-
-- 5-stage pipelined datapath
-- Supports ALU operations, memory access, branching, and jumping
-- Implements **data hazard resolution** via a forwarding unit
-- Testbench with multiple instruction sequences
-- Waveform verification using Xilinx Vivado
+This repository contains a Verilog implementation of a 32-bit processor based on the MIPS architecture. The design utilizes a classic 5-stage execution pipeline: **Instruction Fetch (IF), Instruction Decode (ID), Execute (EX), Memory Access (MEM), and Write Back (WB)**. Additionally, the CPU is equipped to handle **branching** and **jumping** operations, along with a **data forwarding** mechanism to prevent pipeline stalls.
 
 ---
 
-## 🧩 Files
+## Key Capabilities
 
-- `top.v` – Main integration module
-- `ALU_Unit.v`, `alu_control.v`, `control_unit.v` – Core logic
-- `EXMEM_reg.v`, `IDEX.v`, `IFID_reg.v`, `MEMWB.v` – Pipeline registers
-- `data_mem.v`, `ins_mem.v`, `registers.v` – Memories and register file
-- `forwarding_unit.v` – Data hazard detection and forwarding
-- `tb.v` – Sample program for testing processor behavior
+* **Pipelined Architecture:** Utilizes a standard 5-stage datapath for improved instruction throughput.
+* **Instruction Support:** Capable of executing standard ALU computations, memory read/writes, and control flow operations (branches and jumps).
+* **Hazard Mitigation:** Features a dedicated **forwarding unit** to dynamically resolve data hazards without halting the pipeline.
+* **Simulation & Verification:** Includes a robust testbench with various instruction scenarios, fully verified using waveform analysis in Xilinx Vivado.
 
 ---
 
-## 🖼️ Images
+## Project Structure
 
-### 🔧 Pipelined Datapath
+* `top.v` — The top-level wrapper that integrates all sub-modules.
+* `ALU_Unit.v`, `alu_control.v`, `control_unit.v` — The primary arithmetic and central control logic modules.
+* `IFID_reg.v`, `IDEX.v`, `EXMEM_reg.v`, `MEMWB.v` — The intermediate registers connecting each pipeline stage.
+* `ins_mem.v`, `data_mem.v`, `registers.v` — Instruction memory, data memory, and the main register bank.
+* `forwarding_unit.v` — The dedicated logic block for detecting and bypassing data dependencies.
+* `tb.v` — The testbench module containing sample machine code to validate the processor's behavior.
+
+---
+
+## Architecture & Results
+
+### Pipeline Architecture
 ![Datapath](assets/datapath_pipeline.jpg)
 
-### ➿ Forwarding Unit
+### Hazard Forwarding Logic
 ![Forwarding](assets/fwd_unit.jpg)
 
-### 📊 Sample Waveform 1
+### Simulation Waveform 1
 ![Waveform 1](assets/waveform1.png)
 
-### 📊 Sample Waveform 2
+### Simulation Waveform 2
 ![Waveform 2](assets/waveform2.png)
 
-### 📊 Sample Waveform 3
+### Simulation Waveform 3
 ![Waveform 3](assets/waveform3.png)
 
 ---
 
-## 🧪 Testing
+## Verification Strategy
 
-The processor has been tested with arithmetic, memory, and control instructions. Simulation waveforms verify forwarding and hazard handling.
-
-
+The CPU's functionality has been evaluated using a comprehensive mix of arithmetic, memory, and control instructions. The provided simulation waveforms confirm that the pipeline operates smoothly and that the forwarding unit successfully intercepts and resolves potential data hazards.
