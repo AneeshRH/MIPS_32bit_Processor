@@ -5,7 +5,7 @@
 // 
 // Create Date: 17.05.2026 17:33:03
 // Design Name: 
-// Module Name: EXMEM_reg
+// Module Name: pipeline_reg_ex_mem
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -19,30 +19,34 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
+module pipeline_reg_ex_mem(
+    input ctrl_mem2reg_in, ctrl_reg_wr_in, ctrl_mem_rd_in, ctrl_mem_wr_in, ctrl_branch_in, alu_zero_in, clock_sig,
+    input [31:0] br_target_in, alu_res_in, val_rt_in, 
+    input [4:0] dest_reg_idx_in,
 
-module EXMEM_reg(
-input MemtoReg,RegWrite,MemRead,MemWrite,Branch,zero,clk,
-input [31:0] add_result,alu_result,read_data_2, 
-input[4:0] register_dest,
+    output ctrl_mem2reg_out, ctrl_reg_wr_out, ctrl_mem_rd_out, ctrl_mem_wr_out, ctrl_branch_out, alu_zero_out,
+    output [31:0] br_target_out, alu_res_out, val_rt_out,
+    output [4:0] dest_reg_idx_out
+);
 
-output MemtoReg_out,RegWrite_out,MemRead_out,MemWrite_out,Branch_out,zero_out,
-output[31:0]add_result_out,alu_result_out,read_data_2_out,
-output[4:0] register_dest_out
-    );
-reg[5:0] a;
-reg[31:0] b,c,d;
-reg[4:0] e; 
-initial {a,b,c,d,e} = 107'b0;   
-always@(posedge clk)begin
-a<={MemtoReg,RegWrite,MemRead,MemWrite,Branch,zero};
-b<=add_result;
-c<=alu_result;
-d<=read_data_2;
-e<=register_dest;
+reg [5:0] ctrl_sigs_ff;
+reg [31:0] br_target_ff, alu_res_ff, val_rt_ff;
+reg [4:0] dest_reg_idx_ff; 
+
+initial {ctrl_sigs_ff, br_target_ff, alu_res_ff, val_rt_ff, dest_reg_idx_ff} = 107'b0;   
+
+always @(posedge clock_sig) begin
+    ctrl_sigs_ff <= {ctrl_mem2reg_in, ctrl_reg_wr_in, ctrl_mem_rd_in, ctrl_mem_wr_in, ctrl_branch_in, alu_zero_in};
+    br_target_ff <= br_target_in;
+    alu_res_ff <= alu_res_in;
+    val_rt_ff <= val_rt_in;
+    dest_reg_idx_ff <= dest_reg_idx_in;
 end
-assign {MemtoReg_out,RegWrite_out,MemRead_out,MemWrite_out,Branch_out,zero_out}=a;
-assign add_result_out=b;
-assign alu_result_out=c;
-assign read_data_2_out=d;
-assign register_dest_out=e;
+
+assign {ctrl_mem2reg_out, ctrl_reg_wr_out, ctrl_mem_rd_out, ctrl_mem_wr_out, ctrl_branch_out, alu_zero_out} = ctrl_sigs_ff;
+assign br_target_out = br_target_ff;
+assign alu_res_out = alu_res_ff;
+assign val_rt_out = val_rt_ff;
+assign dest_reg_idx_out = dest_reg_idx_ff;
+
 endmodule
