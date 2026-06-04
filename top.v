@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 22.05.2025 21:36:46
+// Create Date: 23.05.2026 21:36:46
 // Design Name: 
-// Module Name: top
+// Module Name: processor_top
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -19,91 +19,251 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
+module top(
+    input clock, 
+    output [31:0] dbg_reg_mem_req4, dbg_write_data_chk,
+    output [29:0] dbg_chk_addr,
+    output [31:0] dbg_data_mem_req, dbg_reg_mem_req1, dbg_reg_mem_req2, dbg_reg_mem_req3,
+    output [31:0] dbg_alu_out, dbg_rd_addr, dbg_tb_writedata, 
+    output [4:0] dbg_rd_writereg
+);
 
-module top(input clk ,output [31:0]reg_mem_req_output4, write_data_check,output [29:0] check_addr,output [31:0]  data_mem_req_output,reg_mem_req_output1,reg_mem_req_output2,reg_mem_req_output3,output [31:0]alu_out_check, rd_addr,tb_writedata, output [4:0] rd_writereg);
-reg [31:0] PC;
-wire [31:0] PC_in;
-wire [31:0] PC_out;
-wire [31:0] instruction;
-wire [31:0] PC_nex,PC_branch;
-wire [31:0] write_data;
-wire [5:0] op;
-initial PC=0;
-wire PCSrc;
-wire [31:0] ins_reg_ifid,pc_reg_ifid;
-wire [5:0] funct;
-assign PC_nex = PC_out+4;
-assign PC_out = PC;
-assign PC_in = PCSrc?PC_branch:PC_nex;
-wire [4:0] read_reg1,read_reg2,write_reg, EXMEM_write_reg_in,register_dest_out_EXMEM,Dest_out_MEMWB;
-wire [4:0] IFID_REGRS,IFID_REGRT,IFID_REGRD;
-wire[31:0] read_data1,read_data2, EXMEM_branching_in,read_data_data_mem;
-wire RegDest,AluSrc, MemtoReg,RegWrite,Memread, MemWrite, Branch,Jump;
-wire [31:0]read_data1_out_IDEX,read_data2_out_IDEX,immediate_out_IDEX,pc_addr_out_IDEX, ALU_OUT,add_result_out_EXMEM,alu_result_out_EXMEM,read_data_2_out_EXMEM,read_data_out_MEMWB,alu_result_out_MEMWB;
-wire [4:0] IFID_REGRS_out_IDEX,IFID_REGRT_out_IDEX,IFID_REGRD_out_IDEX;
-wire [1:0]alu_op_out_IDEX;
-wire RegDst_out_IDEX, AluSrc_out_IDEX, MemtoReg_out_IDEX,RegWrite_out_IDEX,Memread_out_IDEX, MemWrite_out_IDEX, Branch_out_IDEX,Jump_out_IDEX,MemtoReg_out_EXMEM,RegWrite_out_EXMEM,MemRead_out_EXMEM,MemWrite_out_EXMEM,Branch_out_EXMEM,zero_out_EXMEM,RegWrite_out_MEMWB,Jump_out_MEMWB,MemtoReg_out_MEMWB;
-wire [1:0] AluOp, ForwardA, ForwardB;
-wire [15:0] imm;
-assign imm =  ins_reg_ifid[15:0];
-wire [5:0] funct_idex;
-wire[3:0] Alu_control;
-wire zero_reg;
-wire [31:0] immediate;
-reg [31:0]OPERAND1_fd,OPERAND2_fd;
-wire [31:0] OP1,OP2;
-assign immediate = {{16{imm[15]}},imm};
-assign read_reg1 = ins_reg_ifid[25:21];
-assign read_reg2=ins_reg_ifid[20:16];
+reg [31:0] prog_c;
+wire [31:0] prog_c_in;
+wire [31:0] prog_c_out;
+wire [31:0] instr;
+wire [31:0] prog_c_next, prog_c_br;
+wire [31:0] wr_data;
+wire [5:0] opcode;
 
-assign rd_writereg=write_reg;
+initial prog_c = 0;
 
-assign tb_writedata=write_data;
+wire pc_source;
+wire [31:0] ifid_instr, ifid_pc;
+wire [5:0] func_code;
 
+assign prog_c_next = prog_c_out + 4;
+assign prog_c_out = prog_c;
+assign prog_c_in = pc_source ? prog_c_br : prog_c_next;
 
-assign funct_idex = immediate_out_IDEX[5:0];
-assign op = ins_reg_ifid[31:26];
-assign funct=ins_reg_ifid[5:0];
-assign IFID_REGRS = read_reg1;
-assign IFID_REGRT = read_reg2;
-assign IFID_REGRD = ins_reg_ifid[15:11];
-always@(posedge clk) PC<=PC_in;
-ins_memory i1(.read_adress(PC_out),.instruction(instruction));
-IFID_reg reg1(.instruction_memory(instruction),.pc_next(PC_nex),.clk(clk),.instruction_out(ins_reg_ifid),.pc_out(pc_reg_ifid));
-registers r1(.reg_mem_req_output4(reg_mem_req_output4),.clk(clk),.read_reg1(read_reg1),.read_reg2(read_reg2),.write_reg(write_reg),.write_data(write_data),.read_data1(read_data1),.read_data2(read_data2),.RegWrite(RegWrite_out_MEMWB),.reg_mem_req_output1(reg_mem_req_output1),.reg_mem_req_output2(reg_mem_req_output2),.reg_mem_req_output3(reg_mem_req_output3));
-control_unit c1(.op(op),.RegDst(RegDst),.AluSrc(AluSrc),.MemtoReg(MemtoReg),.RegWrite(RegWrite),.Memread(Memread),.MemWrite(MemWrite),.Branch(Branch),.Jump(Jump),.AluOp(AluOp));
-IDEX reg2(.clk(clk),.read_data1(read_data1),.read_data2(read_data2),.pc_addr(PC_nex),.immediate(immediate),.IFID_REGRS(IFID_REGRS),.IFID_REGRT(IFID_REGRT),.IFID_REGRD(IFID_REGRD),.alu_op(AluOp),.RegDst(RegDst), .AluSrc(AluSrc), .MemtoReg(MemtoReg),.RegWrite(RegWrite),.Memread(Memread), .MemWrite(MemWrite), .Branch(Branch),.Jump(Jump),.read_data1_out(read_data1_out_IDEX),.read_data2_out(read_data2_out_IDEX),.immediate_out(immediate_out_IDEX),.pc_addr_out(pc_addr_out_IDEX),.IFID_REGRS_out(IFID_REGRS_out_IDEX),.IFID_REGRT_out(IFID_REGRT_out_IDEX),.IFID_REGRD_out(IFID_REGRD_out_IDEX),.alu_op_out(alu_op_out_IDEX),.RegDst_out(RegDst_out_IDEX), .AluSrc_out(AluSrc_out_IDEX), .MemtoReg_out(MemtoReg_out_IDEX),.RegWrite_out(RegWrite_out_IDEX),.Memread_out(Memread_out_IDEX), .MemWrite_out(MemWrite_out_IDEX), .Branch_out(Branch_out_IDEX),.Jump_out(Jump_out_IDEX));
-assign EXMEM_write_reg_in=(RegDst_out_IDEX?IFID_REGRD_out_IDEX:IFID_REGRT_out_IDEX);
-assign EXMEM_branching_in=pc_addr_out_IDEX+{immediate_out_IDEX[29:0],2'b0};
-alu_control al(.AluOp(alu_op_out_IDEX),.funct(funct_idex),.Alu_control(Alu_control));
-ALU_unit ALU(.alu_op(Alu_control),.operand_1(OP1),.operand_2(OP2),.out(ALU_OUT),.zero(zero_reg));
-EXMEM_reg reg3(.MemtoReg(MemtoReg_out_IDEX),.RegWrite(RegWrite_out_IDEX),.MemRead(Memread_out_IDEX),.MemWrite(MemWrite_out_IDEX),.Branch(Branch_out_IDEX),.zero(zero_reg),.clk(clk),.add_result(EXMEM_branching_in),.alu_result(ALU_OUT),.read_data_2(read_data2_out_IDEX),.register_dest(EXMEM_write_reg_in),.MemtoReg_out(MemtoReg_out_EXMEM),.RegWrite_out(RegWrite_out_EXMEM),.MemRead_out(MemRead_out_EXMEM),.MemWrite_out(MemWrite_out_EXMEM),.Branch_out(Branch_out_EXMEM),.zero_out(zero_out_EXMEM),.add_result_out(add_result_out_EXMEM),.alu_result_out(alu_result_out_EXMEM),.read_data_2_out(read_data_2_out_EXMEM),.register_dest_out(register_dest_out_EXMEM));
-data_mem dm(.clk(clk),.check_addr(check_addr),.addr(alu_result_out_EXMEM),.write_data(read_data_2_out_EXMEM),.read_data(read_data_data_mem),.MemRead(MemRead_out_EXMEM), .MemWrite(MemWrite_out_EXMEM),.data_mem_req_output(data_mem_req_output));
-assign PCSrc=Branch_out_EXMEM && zero_out_EXMEM;
-assign PC_branch=add_result_out_EXMEM;
-MEMWB reg4(.clk(clk),.read_data(read_data_data_mem),.alu_result(alu_result_out_EXMEM),.Dest(register_dest_out_EXMEM),.RegWrite(RegWrite_out_EXMEM),.MemtoReg(MemtoReg_out_EXMEM),.read_data_out(read_data_out_MEMWB),.alu_result_out(alu_result_out_MEMWB),.Dest_out(Dest_out_MEMWB),.RegWrite_out(RegWrite_out_MEMWB),.Jump_out(Jump_out_MEMWB),.MemtoReg_out(MemtoReg_out_MEMWB));
-assign write_data=MemtoReg_out_MEMWB?read_data_out_MEMWB:alu_result_out_MEMWB;
-forwarding_unit fd(.IDEX_RegRs(IFID_REGRS_out_IDEX), .IDEX_RegRt(IFID_REGRT_out_IDEX),.EXMEM_RegRd(register_dest_out_EXMEM),.MEMWB_RegRd(Dest_out_MEMWB),.EXMEM_RegWrite(RegWrite_out_EXMEM),.MEMWB_RegWrite(RegWrite_out_MEMWB),.ForwardA(ForwardA),.ForwardB(ForwardB));
-always@(*) begin
-case(ForwardA)
-2'b00:OPERAND1_fd=read_data1_out_IDEX;
-2'b10:OPERAND1_fd=alu_result_out_EXMEM;
-2'b01:OPERAND1_fd=write_data;
-default:OPERAND1_fd=read_data1_out_IDEX;
-endcase
-case(ForwardB)
-2'b00:OPERAND2_fd=AluSrc_out_IDEX?immediate_out_IDEX:read_data2_out_IDEX;
-2'b10:OPERAND2_fd=alu_result_out_EXMEM;
-2'b01:OPERAND2_fd=write_data;
-default:OPERAND2_fd=AluSrc_out_IDEX?immediate_out_IDEX:read_data2_out_IDEX;
-endcase
+wire [4:0] rd_reg1, rd_reg2, wr_reg, exmem_wr_reg_in, exmem_reg_dst_out, memwb_dst_out;
+wire [4:0] ifid_rs, ifid_rt, ifid_rd;
+wire [31:0] rd_data1, rd_data2, exmem_br_in, dmem_rd_data;
+wire ctrl_reg_dst, ctrl_alu_src, ctrl_mem_to_reg, ctrl_reg_wr, ctrl_mem_rd, ctrl_mem_wr, ctrl_branch, ctrl_jump;
+
+wire [31:0] rd_data1_idex, rd_data2_idex, imm_idex, pc_addr_idex, alu_result, add_res_exmem, alu_res_exmem, rd_data2_exmem, rd_data_memwb, alu_res_memwb;
+wire [4:0] ifid_rs_idex, ifid_rt_idex, ifid_rd_idex;
+wire [1:0] alu_op_idex;
+wire reg_dst_idex, alu_src_idex, mem_to_reg_idex, reg_wr_idex, mem_rd_idex, mem_wr_idex, branch_idex, jump_idex, mem_to_reg_exmem, reg_wr_exmem, mem_rd_exmem, mem_wr_exmem, branch_exmem, z_exmem, reg_wr_memwb, jump_memwb, mem_to_reg_memwb;
+
+wire [1:0] alu_op_ctrl, fwd_a, fwd_b;
+wire [15:0] imm_val;
+
+assign imm_val = ifid_instr[15:0];
+wire [5:0] func_idex;
+wire [3:0] alu_ctrl_sig;
+wire z_flag;
+wire [31:0] ext_imm;
+reg [31:0] op1_fwd, op2_fwd;
+wire [31:0] operand_a, operand_b;
+
+assign ext_imm = {{16{imm_val[15]}}, imm_val};
+assign rd_reg1 = ifid_instr[25:21];
+assign rd_reg2 = ifid_instr[20:16];
+
+assign dbg_rd_writereg = wr_reg;
+assign dbg_tb_writedata = wr_data;
+
+assign func_idex = imm_idex[5:0];
+assign opcode = ifid_instr[31:26];
+assign func_code = ifid_instr[5:0];
+assign ifid_rs = rd_reg1;
+assign ifid_rt = rd_reg2;
+assign ifid_rd = ifid_instr[15:11];
+
+always @(posedge clock) prog_c <= prog_c_in;
+
+ins_memory i1(
+    .read_adress(prog_c_out), 
+    .instruction(instr)
+);
+
+IFID_reg reg1(
+    .instruction_memory(instr), 
+    .pc_next(prog_c_next), 
+    .clk(clock), 
+    .instruction_out(ifid_instr), 
+    .pc_out(ifid_pc)
+);
+
+registers r1(
+    .reg_mem_req_output4(dbg_reg_mem_req4), 
+    .clk(clock), 
+    .read_reg1(rd_reg1), 
+    .read_reg2(rd_reg2), 
+    .write_reg(wr_reg), 
+    .write_data(wr_data), 
+    .read_data1(rd_data1), 
+    .read_data2(rd_data2), 
+    .RegWrite(reg_wr_memwb), 
+    .reg_mem_req_output1(dbg_reg_mem_req1), 
+    .reg_mem_req_output2(dbg_reg_mem_req2), 
+    .reg_mem_req_output3(dbg_reg_mem_req3)
+);
+
+control_unit c1(
+    .op(opcode), 
+    .RegDst(ctrl_reg_dst), 
+    .AluSrc(ctrl_alu_src), 
+    .MemtoReg(ctrl_mem_to_reg), 
+    .RegWrite(ctrl_reg_wr), 
+    .Memread(ctrl_mem_rd), 
+    .MemWrite(ctrl_mem_wr), 
+    .Branch(ctrl_branch), 
+    .Jump(ctrl_jump), 
+    .AluOp(alu_op_ctrl)
+);
+
+IDEX reg2(
+    .clk(clock), 
+    .read_data1(rd_data1), 
+    .read_data2(rd_data2), 
+    .pc_addr(prog_c_next), 
+    .immediate(ext_imm), 
+    .IFID_REGRS(ifid_rs), 
+    .IFID_REGRT(ifid_rt), 
+    .IFID_REGRD(ifid_rd), 
+    .alu_op(alu_op_ctrl), 
+    .RegDst(ctrl_reg_dst), 
+    .AluSrc(ctrl_alu_src), 
+    .MemtoReg(ctrl_mem_to_reg), 
+    .RegWrite(ctrl_reg_wr), 
+    .Memread(ctrl_mem_rd), 
+    .MemWrite(ctrl_mem_wr), 
+    .Branch(ctrl_branch), 
+    .Jump(ctrl_jump), 
+    .read_data1_out(rd_data1_idex), 
+    .read_data2_out(rd_data2_idex), 
+    .immediate_out(imm_idex), 
+    .pc_addr_out(pc_addr_idex), 
+    .IFID_REGRS_out(ifid_rs_idex), 
+    .IFID_REGRT_out(ifid_rt_idex), 
+    .IFID_REGRD_out(ifid_rd_idex), 
+    .alu_op_out(alu_op_idex), 
+    .RegDst_out(reg_dst_idex), 
+    .AluSrc_out(alu_src_idex), 
+    .MemtoReg_out(mem_to_reg_idex), 
+    .RegWrite_out(reg_wr_idex), 
+    .Memread_out(mem_rd_idex), 
+    .MemWrite_out(mem_wr_idex), 
+    .Branch_out(branch_idex), 
+    .Jump_out(jump_idex)
+);
+
+assign exmem_wr_reg_in = (reg_dst_idex ? ifid_rd_idex : ifid_rt_idex);
+assign exmem_br_in = pc_addr_idex + {imm_idex[29:0], 2'b00};
+
+alu_control al(
+    .AluOp(alu_op_idex), 
+    .funct(func_idex), 
+    .Alu_control(alu_ctrl_sig)
+);
+
+ALU_unit ALU(
+    .alu_op(alu_ctrl_sig), 
+    .operand_1(operand_a), 
+    .operand_2(operand_b), 
+    .out(alu_result), 
+    .zero(z_flag)
+);
+
+EXMEM_reg reg3(
+    .MemtoReg(mem_to_reg_idex), 
+    .RegWrite(reg_wr_idex), 
+    .MemRead(mem_rd_idex), 
+    .MemWrite(mem_wr_idex), 
+    .Branch(branch_idex), 
+    .zero(z_flag), 
+    .clk(clock), 
+    .add_result(exmem_br_in), 
+    .alu_result(alu_result), 
+    .read_data_2(rd_data2_idex), 
+    .register_dest(exmem_wr_reg_in), 
+    .MemtoReg_out(mem_to_reg_exmem), 
+    .RegWrite_out(reg_wr_exmem), 
+    .MemRead_out(mem_rd_exmem), 
+    .MemWrite_out(mem_wr_exmem), 
+    .Branch_out(branch_exmem), 
+    .zero_out(z_exmem), 
+    .add_result_out(add_res_exmem), 
+    .alu_result_out(alu_res_exmem), 
+    .read_data_2_out(rd_data2_exmem), 
+    .register_dest_out(exmem_reg_dst_out)
+);
+
+data_mem dm(
+    .clk(clock), 
+    .check_addr(dbg_chk_addr), 
+    .addr(alu_res_exmem), 
+    .write_data(rd_data2_exmem), 
+    .read_data(dmem_rd_data), 
+    .MemRead(mem_rd_exmem), 
+    .MemWrite(mem_wr_exmem), 
+    .data_mem_req_output(dbg_data_mem_req)
+);
+
+assign pc_source = branch_exmem && z_exmem;
+assign prog_c_br = add_res_exmem;
+
+MEMWB reg4(
+    .clk(clock), 
+    .read_data(dmem_rd_data), 
+    .alu_result(alu_res_exmem), 
+    .Dest(exmem_reg_dst_out), 
+    .RegWrite(reg_wr_exmem), 
+    .MemtoReg(mem_to_reg_exmem), 
+    .read_data_out(rd_data_memwb), 
+    .alu_result_out(alu_res_memwb), 
+    .Dest_out(memwb_dst_out), 
+    .RegWrite_out(reg_wr_memwb), 
+    .Jump_out(jump_memwb), 
+    .MemtoReg_out(mem_to_reg_memwb)
+);
+
+assign wr_data = mem_to_reg_memwb ? rd_data_memwb : alu_res_memwb;
+
+forwarding_unit fd(
+    .IDEX_RegRs(ifid_rs_idex), 
+    .IDEX_RegRt(ifid_rt_idex), 
+    .EXMEM_RegRd(exmem_reg_dst_out), 
+    .MEMWB_RegRd(memwb_dst_out), 
+    .EXMEM_RegWrite(reg_wr_exmem), 
+    .MEMWB_RegWrite(reg_wr_memwb), 
+    .ForwardA(fwd_a), 
+    .ForwardB(fwd_b)
+);
+
+always @(*) begin
+    case(fwd_a)
+        2'b00: op1_fwd = rd_data1_idex;
+        2'b10: op1_fwd = alu_res_exmem;
+        2'b01: op1_fwd = wr_data;
+        default: op1_fwd = rd_data1_idex;
+    endcase
+    case(fwd_b)
+        2'b00: op2_fwd = alu_src_idex ? imm_idex : rd_data2_idex;
+        2'b10: op2_fwd = alu_res_exmem;
+        2'b01: op2_fwd = wr_data;
+        default: op2_fwd = alu_src_idex ? imm_idex : rd_data2_idex;
+    endcase
 end
-assign OP1 = OPERAND1_fd;
-assign OP2 = OPERAND2_fd;
-assign write_reg = Dest_out_MEMWB;
-assign rd_addr = PC_out;
 
-assign alu_out_check = ALU_OUT;
-assign write_data_check = read_data_2_out_EXMEM;
+assign operand_a = op1_fwd;
+assign operand_b = op2_fwd;
+assign wr_reg = memwb_dst_out;
+assign dbg_rd_addr = prog_c_out;
+
+assign dbg_alu_out = alu_result;
+assign dbg_write_data_chk = rd_data2_exmem;
 
 endmodule
