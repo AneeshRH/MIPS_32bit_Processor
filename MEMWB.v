@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 18.05.2025 17:46:47
+// Create Date: 18.05.2026 17:46:47
 // Design Name: 
-// Module Name: MEMWB
+// Module Name: pipeline_reg_mem_wb
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -19,15 +19,30 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
+module pipeline_reg_mem_wb(
+    input clock_in,
+    input [31:0] mem_rd_data, alu_res_in,
+    input [4:0] dest_reg_addr,
+    input ctrl_reg_wr_in, ctrl_jump_in, ctrl_mem2reg_in,
+    output [31:0] mem_rd_data_out, alu_res_out,
+    output [4:0] dest_reg_addr_out,
+    output ctrl_reg_wr_out, ctrl_jump_out, ctrl_mem2reg_out
+);
 
-module MEMWB(input clk,input [31:0] read_data,alu_result,input[4:0] Dest,input RegWrite,Jump,MemtoReg,output [31:0] read_data_out,alu_result_out,output [4:0] Dest_out,output RegWrite_out,Jump_out,MemtoReg_out);
-reg [31:0] read_data_reg,alu_result_reg;
-reg [4:0] Dest_reg;
-reg RegWrite_reg,Jump_reg,MemtoReg_reg;
-initial {read_data_reg,alu_result_reg,Dest_reg,RegWrite_reg,Jump_reg,MemtoReg_reg} = 0;
-always@(posedge clk)
-begin
-{read_data_reg,alu_result_reg,Dest_reg,RegWrite_reg,Jump_reg,MemtoReg_reg}<={read_data,alu_result,Dest, RegWrite,Jump,MemtoReg};
+reg [31:0] mem_rd_data_ff, alu_res_ff;
+reg [4:0] dest_reg_addr_ff;
+reg ctrl_reg_wr_ff, ctrl_jump_ff, ctrl_mem2reg_ff;
+
+initial begin
+    {mem_rd_data_ff, alu_res_ff, dest_reg_addr_ff, ctrl_reg_wr_ff, ctrl_jump_ff, ctrl_mem2reg_ff} = 0;
 end
-assign {read_data_out,alu_result_out,Dest_out,RegWrite_out,Jump_out,MemtoReg_out} = {read_data_reg,alu_result_reg,Dest_reg,RegWrite_reg,Jump_reg,MemtoReg_reg};
+
+always @(posedge clock_in) begin
+    {mem_rd_data_ff, alu_res_ff, dest_reg_addr_ff, ctrl_reg_wr_ff, ctrl_jump_ff, ctrl_mem2reg_ff} <= 
+    {mem_rd_data, alu_res_in, dest_reg_addr, ctrl_reg_wr_in, ctrl_jump_in, ctrl_mem2reg_in};
+end
+
+assign {mem_rd_data_out, alu_res_out, dest_reg_addr_out, ctrl_reg_wr_out, ctrl_jump_out, ctrl_mem2reg_out} = 
+       {mem_rd_data_ff, alu_res_ff, dest_reg_addr_ff, ctrl_reg_wr_ff, ctrl_jump_ff, ctrl_mem2reg_ff};
+
 endmodule
