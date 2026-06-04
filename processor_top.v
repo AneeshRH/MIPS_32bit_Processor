@@ -83,13 +83,13 @@ assign ifid_rd = ifid_instr[15:11];
 
 always @(posedge clock) prog_c <= prog_c_in;
 
-// Updated to use instr_mem_unit
+
 instr_mem_unit i1(
     .fetch_addr_in(prog_c_out), 
     .fetched_instr_out(instr)
 );
 
-// Updated to use pipeline_reg_if_id
+
 pipeline_reg_if_id reg1(
     .mem_instr_in(instr), 
     .next_pc_in(prog_c_next), 
@@ -98,7 +98,6 @@ pipeline_reg_if_id reg1(
     .pc_fwd_out(ifid_pc)
 );
 
-// Updated to use register_bank
 register_bank r1(
     .probe_val4(dbg_reg_mem_req4), 
     .clock(clock), 
@@ -114,7 +113,7 @@ register_bank r1(
     .probe_val3(dbg_reg_mem_req3)
 );
 
-// Updated to use main_decoder_logic
+
 main_decoder_logic c1(
     .opcode_in(opcode), 
     .dst_reg_sel(ctrl_reg_dst), 
@@ -128,7 +127,6 @@ main_decoder_logic c1(
     .alu_mode(alu_op_ctrl)
 );
 
-// Updated to use pipeline_reg_id_ex
 pipeline_reg_id_ex reg2(
     .clock_sig(clock), 
     .val_rs(rd_data1), 
@@ -168,14 +166,14 @@ pipeline_reg_id_ex reg2(
 assign exmem_wr_reg_in = (reg_dst_idex ? ifid_rd_idex : ifid_rt_idex);
 assign exmem_br_in = pc_addr_idex + {imm_idex[29:0], 2'b00};
 
-// Updated to use arithmetic_ctrl_unit
+
 arithmetic_ctrl_unit al(
     .op_code_ctrl(alu_op_idex), 
     .function_field(func_idex), 
     .alu_cmd_out(alu_ctrl_sig)
 );
 
-// Updated to use arithmetic_logic_core
+
 arithmetic_logic_core ALU(
     .ctrl_operation(alu_ctrl_sig), 
     .src_a(operand_a), 
@@ -184,7 +182,7 @@ arithmetic_logic_core ALU(
     .is_zero_flag(z_flag)
 );
 
-// Note: EXMEM_reg was never provided for renaming, so its native ports are used
+
 EXMEM_reg reg3(
     .MemtoReg(mem_to_reg_idex), 
     .RegWrite(reg_wr_idex), 
@@ -209,7 +207,7 @@ EXMEM_reg reg3(
     .register_dest_out(exmem_reg_dst_out)
 );
 
-// Updated to use data_memory_unit
+
 data_memory_unit dm(
     .clock_sig(clock), 
     .probe_word_addr(dbg_chk_addr), 
@@ -224,7 +222,7 @@ data_memory_unit dm(
 assign pc_source = branch_exmem && z_exmem;
 assign prog_c_br = add_res_exmem;
 
-// Updated to use pipeline_reg_mem_wb (ctrl_jump_in tied to 0 as it was missing previously)
+
 pipeline_reg_mem_wb reg4(
     .clock_in(clock), 
     .mem_rd_data(dmem_rd_data), 
@@ -243,7 +241,7 @@ pipeline_reg_mem_wb reg4(
 
 assign wr_data = mem_to_reg_memwb ? rd_data_memwb : alu_res_memwb;
 
-// Updated to use data_forward_ctrl
+
 data_forward_ctrl fd(
     .id_ex_rs_addr(ifid_rs_idex), 
     .id_ex_rt_addr(ifid_rt_idex), 
