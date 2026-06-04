@@ -182,29 +182,29 @@ arithmetic_logic_core ALU(
     .is_zero_flag(z_flag)
 );
 
-
-EXMEM_reg reg3(
-    .MemtoReg(mem_to_reg_idex), 
-    .RegWrite(reg_wr_idex), 
-    .MemRead(mem_rd_idex), 
-    .MemWrite(mem_wr_idex), 
-    .Branch(branch_idex), 
-    .zero(z_flag), 
-    .clk(clock), 
-    .add_result(exmem_br_in), 
-    .alu_result(alu_result), 
-    .read_data_2(rd_data2_idex), 
-    .register_dest(exmem_wr_reg_in), 
-    .MemtoReg_out(mem_to_reg_exmem), 
-    .RegWrite_out(reg_wr_exmem), 
-    .MemRead_out(mem_rd_exmem), 
-    .MemWrite_out(mem_wr_exmem), 
-    .Branch_out(branch_exmem), 
-    .zero_out(z_exmem), 
-    .add_result_out(add_res_exmem), 
-    .alu_result_out(alu_res_exmem), 
-    .read_data_2_out(rd_data2_exmem), 
-    .register_dest_out(exmem_reg_dst_out)
+pipeline_reg_ex_mem reg3(
+    .ctrl_mem2reg_in(mem_to_reg_idex), 
+    .ctrl_reg_wr_in(reg_wr_idex), 
+    .ctrl_mem_rd_in(mem_rd_idex), 
+    .ctrl_mem_wr_in(mem_wr_idex), 
+    .ctrl_branch_in(branch_idex), 
+    .alu_zero_in(z_flag), 
+    .clock_sig(clock), 
+    .br_target_in(exmem_br_in), 
+    .alu_res_in(alu_result), 
+    .val_rt_in(rd_data2_idex), 
+    .dest_reg_idx_in(exmem_wr_reg_in), 
+    
+    .ctrl_mem2reg_out(mem_to_reg_exmem), 
+    .ctrl_reg_wr_out(reg_wr_exmem), 
+    .ctrl_mem_rd_out(mem_rd_exmem), 
+    .ctrl_mem_wr_out(mem_wr_exmem), 
+    .ctrl_branch_out(branch_exmem), 
+    .alu_zero_out(z_exmem), 
+    .br_target_out(add_res_exmem), 
+    .alu_res_out(alu_res_exmem), 
+    .val_rt_out(rd_data2_exmem), 
+    .dest_reg_idx_out(exmem_reg_dst_out)
 );
 
 
