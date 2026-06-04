@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 08.04.2025 23:15:27
+// Create Date: 09.04.2026 23:15:27
 // Design Name: 
-// Module Name: registers
+// Module Name: register_bank
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -19,54 +19,66 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
+module register_bank(
+    input clock,
+    input [4:0] rd_addr_a, rd_addr_b, wr_addr,
+    input we_ctrl,
+    input [31:0] wr_data_in,
+    output [31:0] rd_data_a, rd_data_b,
+    output [31:0] probe_val1, probe_val2, probe_val3, probe_val4
+);
 
-module registers(input clk,input [4:0] read_reg1,read_reg2,write_reg,input RegWrite,input[31:0] write_data,output [31:0] read_data1,read_data2,output [31:0] reg_mem_req_output1,reg_mem_req_output2,reg_mem_req_output3,reg_mem_req_output4);
-reg [31:0] read_data1_reg,read_data2_reg;
-reg [31:0] mem [31:0];
-integer i;
+reg [31:0] rd_val_a_reg, rd_val_b_reg;
+reg [31:0] reg_array [31:0];
+integer idx;
+
 initial begin
-for(i=0;i<31;i=i+1) begin
-if(i!=1 && i!=3 && i!=13 && i!=5 && i!=6 && i!=15 && i!=2 && i!=4) begin
-mem[i] =32'b0;
+    for(idx=0; idx<31; idx=idx+1) begin
+        if(idx!=1 && idx!=3 && idx!=13 && idx!=5 && idx!=6 && idx!=15 && idx!=2 && idx!=4) begin
+            reg_array[idx] = 32'b0;
+        end
+        else if (idx==1)begin
+            reg_array[1] = 32'd16;
+        end
+        else if (idx==3)begin
+            reg_array[3] = 32'd6;
+        end
+        else if (idx==13)begin
+            reg_array[13] = 32'd18;
+        end
+        else if (idx==5)begin
+            reg_array[5] = 32'd33;
+        end
+        else if (idx==6)begin
+            reg_array[6] = 32'd5;
+        end
+        else if (idx==15)begin
+            reg_array[15] = 32'd3566;
+        end
+        else if (idx==2)begin
+            reg_array[2] = 32'd16;
+        end
+        else if (idx==4)begin
+            reg_array[4] = 32'd256;
+        end
+    end
 end
-else if (i==1)begin
-mem [1] = 32'd16;
+
+always @(posedge clock) begin
+    if(we_ctrl) reg_array[wr_addr] <= wr_data_in;
 end
-else if (i==3)begin
-mem [3] = 32'd6;
-end
-else if (i==13)begin
-mem [13] = 32'd18;
-end
-else if (i==5)begin
-mem [5] = 32'd33;
-end
-else if (i==6)begin
-mem [6] = 32'd5;
-end
-else if (i==15)begin
-mem [15] = 32'd3566;
-end
-else if (i==2)begin
-mem [2] = 32'd16;
-end
-else if (i==4)begin
-mem [4] = 32'd256;
-end
-end
-end
-always@(posedge clk)
-begin
-if(RegWrite) mem[write_reg]<=write_data;
-end
-assign read_data1=mem[read_reg1];
-assign read_data2=mem[read_reg2];
-//assign reg_mem_req_output2 = mem[12];
-//assign reg_mem_req_output1 = mem[2];
-//assign reg_mem_req_output3 = mem[13];
-//assign reg_mem_req_output4 = mem[14];
-assign reg_mem_req_output1 = mem[10];
-assign reg_mem_req_output2 = mem[11];
-assign reg_mem_req_output3 = mem[12];
-assign reg_mem_req_output4 = mem[13];
+
+assign rd_data_a = reg_array[rd_addr_a];
+assign rd_data_b = reg_array[rd_addr_b];
+
+//assign probe_val2 = reg_array[12];
+//assign probe_val1 = reg_array[2];
+//assign probe_val3 = reg_array[13];
+//assign probe_val4 = reg_array[14];
+
+assign probe_val1 = reg_array[10];
+assign probe_val2 = reg_array[11];
+assign probe_val3 = reg_array[12];
+assign probe_val4 = reg_array[13];
+
 endmodule
