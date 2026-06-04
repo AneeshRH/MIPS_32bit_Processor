@@ -3,7 +3,7 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 23.05.2026 21:36:46
+// Create Date: 28.05.2026 21:36:46
 // Design Name: 
 // Module Name: processor_top
 // Project Name: 
@@ -19,7 +19,7 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-module top(
+module processor_top(
     input clock, 
     output [31:0] dbg_reg_mem_req4, dbg_write_data_chk,
     output [29:0] dbg_chk_addr,
@@ -83,100 +83,108 @@ assign ifid_rd = ifid_instr[15:11];
 
 always @(posedge clock) prog_c <= prog_c_in;
 
-ins_memory i1(
-    .read_adress(prog_c_out), 
-    .instruction(instr)
+// Updated to use instr_mem_unit
+instr_mem_unit i1(
+    .fetch_addr_in(prog_c_out), 
+    .fetched_instr_out(instr)
 );
 
-IFID_reg reg1(
-    .instruction_memory(instr), 
-    .pc_next(prog_c_next), 
-    .clk(clock), 
-    .instruction_out(ifid_instr), 
-    .pc_out(ifid_pc)
+// Updated to use pipeline_reg_if_id
+pipeline_reg_if_id reg1(
+    .mem_instr_in(instr), 
+    .next_pc_in(prog_c_next), 
+    .clk_signal(clock), 
+    .instr_fwd_out(ifid_instr), 
+    .pc_fwd_out(ifid_pc)
 );
 
-registers r1(
-    .reg_mem_req_output4(dbg_reg_mem_req4), 
-    .clk(clock), 
-    .read_reg1(rd_reg1), 
-    .read_reg2(rd_reg2), 
-    .write_reg(wr_reg), 
-    .write_data(wr_data), 
-    .read_data1(rd_data1), 
-    .read_data2(rd_data2), 
-    .RegWrite(reg_wr_memwb), 
-    .reg_mem_req_output1(dbg_reg_mem_req1), 
-    .reg_mem_req_output2(dbg_reg_mem_req2), 
-    .reg_mem_req_output3(dbg_reg_mem_req3)
+// Updated to use register_bank
+register_bank r1(
+    .probe_val4(dbg_reg_mem_req4), 
+    .clock(clock), 
+    .rd_addr_a(rd_reg1), 
+    .rd_addr_b(rd_reg2), 
+    .wr_addr(wr_reg), 
+    .wr_data_in(wr_data), 
+    .rd_data_a(rd_data1), 
+    .rd_data_b(rd_data2), 
+    .we_ctrl(reg_wr_memwb), 
+    .probe_val1(dbg_reg_mem_req1), 
+    .probe_val2(dbg_reg_mem_req2), 
+    .probe_val3(dbg_reg_mem_req3)
 );
 
-control_unit c1(
-    .op(opcode), 
-    .RegDst(ctrl_reg_dst), 
-    .AluSrc(ctrl_alu_src), 
-    .MemtoReg(ctrl_mem_to_reg), 
-    .RegWrite(ctrl_reg_wr), 
-    .Memread(ctrl_mem_rd), 
-    .MemWrite(ctrl_mem_wr), 
-    .Branch(ctrl_branch), 
-    .Jump(ctrl_jump), 
-    .AluOp(alu_op_ctrl)
+// Updated to use main_decoder_logic
+main_decoder_logic c1(
+    .opcode_in(opcode), 
+    .dst_reg_sel(ctrl_reg_dst), 
+    .src_alu_sel(ctrl_alu_src), 
+    .mem_to_reg_sel(ctrl_mem_to_reg), 
+    .reg_we(ctrl_reg_wr), 
+    .mem_re(ctrl_mem_rd), 
+    .mem_we(ctrl_mem_wr), 
+    .is_branch(ctrl_branch), 
+    .is_jump(ctrl_jump), 
+    .alu_mode(alu_op_ctrl)
 );
 
-IDEX reg2(
-    .clk(clock), 
-    .read_data1(rd_data1), 
-    .read_data2(rd_data2), 
-    .pc_addr(prog_c_next), 
-    .immediate(ext_imm), 
-    .IFID_REGRS(ifid_rs), 
-    .IFID_REGRT(ifid_rt), 
-    .IFID_REGRD(ifid_rd), 
-    .alu_op(alu_op_ctrl), 
-    .RegDst(ctrl_reg_dst), 
-    .AluSrc(ctrl_alu_src), 
-    .MemtoReg(ctrl_mem_to_reg), 
-    .RegWrite(ctrl_reg_wr), 
-    .Memread(ctrl_mem_rd), 
-    .MemWrite(ctrl_mem_wr), 
-    .Branch(ctrl_branch), 
-    .Jump(ctrl_jump), 
-    .read_data1_out(rd_data1_idex), 
-    .read_data2_out(rd_data2_idex), 
-    .immediate_out(imm_idex), 
-    .pc_addr_out(pc_addr_idex), 
-    .IFID_REGRS_out(ifid_rs_idex), 
-    .IFID_REGRT_out(ifid_rt_idex), 
-    .IFID_REGRD_out(ifid_rd_idex), 
-    .alu_op_out(alu_op_idex), 
-    .RegDst_out(reg_dst_idex), 
-    .AluSrc_out(alu_src_idex), 
-    .MemtoReg_out(mem_to_reg_idex), 
-    .RegWrite_out(reg_wr_idex), 
-    .Memread_out(mem_rd_idex), 
-    .MemWrite_out(mem_wr_idex), 
-    .Branch_out(branch_idex), 
-    .Jump_out(jump_idex)
+// Updated to use pipeline_reg_id_ex
+pipeline_reg_id_ex reg2(
+    .clock_sig(clock), 
+    .val_rs(rd_data1), 
+    .val_rt(rd_data2), 
+    .prog_cnt(prog_c_next), 
+    .imm_ext(ext_imm), 
+    .id_rs_idx(ifid_rs), 
+    .id_rt_idx(ifid_rt), 
+    .id_rd_idx(ifid_rd), 
+    .ctrl_alu_op(alu_op_ctrl), 
+    .c_reg_dst(ctrl_reg_dst), 
+    .c_alu_src(ctrl_alu_src), 
+    .c_mem2reg(ctrl_mem_to_reg), 
+    .c_reg_wr(ctrl_reg_wr), 
+    .c_mem_rd(ctrl_mem_rd), 
+    .c_mem_wr(ctrl_mem_wr), 
+    .c_br(ctrl_branch), 
+    .c_jmp(ctrl_jump), 
+    .val_rs_ex(rd_data1_idex), 
+    .val_rt_ex(rd_data2_idex), 
+    .imm_ext_ex(imm_idex), 
+    .prog_cnt_ex(pc_addr_idex), 
+    .id_rs_idx_ex(ifid_rs_idex), 
+    .id_rt_idx_ex(ifid_rt_idex), 
+    .id_rd_idx_ex(ifid_rd_idex), 
+    .ctrl_alu_op_ex(alu_op_idex), 
+    .c_reg_dst_ex(reg_dst_idex), 
+    .c_alu_src_ex(alu_src_idex), 
+    .c_mem2reg_ex(mem_to_reg_idex), 
+    .c_reg_wr_ex(reg_wr_idex), 
+    .c_mem_rd_ex(mem_rd_idex), 
+    .c_mem_wr_ex(mem_wr_idex), 
+    .c_br_ex(branch_idex), 
+    .c_jmp_ex(jump_idex)
 );
 
 assign exmem_wr_reg_in = (reg_dst_idex ? ifid_rd_idex : ifid_rt_idex);
 assign exmem_br_in = pc_addr_idex + {imm_idex[29:0], 2'b00};
 
-alu_control al(
-    .AluOp(alu_op_idex), 
-    .funct(func_idex), 
-    .Alu_control(alu_ctrl_sig)
+// Updated to use arithmetic_ctrl_unit
+arithmetic_ctrl_unit al(
+    .op_code_ctrl(alu_op_idex), 
+    .function_field(func_idex), 
+    .alu_cmd_out(alu_ctrl_sig)
 );
 
-ALU_unit ALU(
-    .alu_op(alu_ctrl_sig), 
-    .operand_1(operand_a), 
-    .operand_2(operand_b), 
-    .out(alu_result), 
-    .zero(z_flag)
+// Updated to use arithmetic_logic_core
+arithmetic_logic_core ALU(
+    .ctrl_operation(alu_ctrl_sig), 
+    .src_a(operand_a), 
+    .src_b(operand_b), 
+    .result_val(alu_result), 
+    .is_zero_flag(z_flag)
 );
 
+// Note: EXMEM_reg was never provided for renaming, so its native ports are used
 EXMEM_reg reg3(
     .MemtoReg(mem_to_reg_idex), 
     .RegWrite(reg_wr_idex), 
@@ -201,46 +209,50 @@ EXMEM_reg reg3(
     .register_dest_out(exmem_reg_dst_out)
 );
 
-data_mem dm(
-    .clk(clock), 
-    .check_addr(dbg_chk_addr), 
-    .addr(alu_res_exmem), 
-    .write_data(rd_data2_exmem), 
-    .read_data(dmem_rd_data), 
-    .MemRead(mem_rd_exmem), 
-    .MemWrite(mem_wr_exmem), 
-    .data_mem_req_output(dbg_data_mem_req)
+// Updated to use data_memory_unit
+data_memory_unit dm(
+    .clock_sig(clock), 
+    .probe_word_addr(dbg_chk_addr), 
+    .mem_addr_in(alu_res_exmem), 
+    .mem_write_data(rd_data2_exmem), 
+    .mem_read_data(dmem_rd_data), 
+    .ctrl_mem_rd(mem_rd_exmem), 
+    .ctrl_mem_wr(mem_wr_exmem), 
+    .probe_mem_data(dbg_data_mem_req)
 );
 
 assign pc_source = branch_exmem && z_exmem;
 assign prog_c_br = add_res_exmem;
 
-MEMWB reg4(
-    .clk(clock), 
-    .read_data(dmem_rd_data), 
-    .alu_result(alu_res_exmem), 
-    .Dest(exmem_reg_dst_out), 
-    .RegWrite(reg_wr_exmem), 
-    .MemtoReg(mem_to_reg_exmem), 
-    .read_data_out(rd_data_memwb), 
-    .alu_result_out(alu_res_memwb), 
-    .Dest_out(memwb_dst_out), 
-    .RegWrite_out(reg_wr_memwb), 
-    .Jump_out(jump_memwb), 
-    .MemtoReg_out(mem_to_reg_memwb)
+// Updated to use pipeline_reg_mem_wb (ctrl_jump_in tied to 0 as it was missing previously)
+pipeline_reg_mem_wb reg4(
+    .clock_in(clock), 
+    .mem_rd_data(dmem_rd_data), 
+    .alu_res_in(alu_res_exmem), 
+    .dest_reg_addr(exmem_reg_dst_out), 
+    .ctrl_reg_wr_in(reg_wr_exmem),
+    .ctrl_jump_in(1'b0),
+    .ctrl_mem2reg_in(mem_to_reg_exmem), 
+    .mem_rd_data_out(rd_data_memwb), 
+    .alu_res_out(alu_res_memwb), 
+    .dest_reg_addr_out(memwb_dst_out), 
+    .ctrl_reg_wr_out(reg_wr_memwb), 
+    .ctrl_jump_out(jump_memwb), 
+    .ctrl_mem2reg_out(mem_to_reg_memwb)
 );
 
 assign wr_data = mem_to_reg_memwb ? rd_data_memwb : alu_res_memwb;
 
-forwarding_unit fd(
-    .IDEX_RegRs(ifid_rs_idex), 
-    .IDEX_RegRt(ifid_rt_idex), 
-    .EXMEM_RegRd(exmem_reg_dst_out), 
-    .MEMWB_RegRd(memwb_dst_out), 
-    .EXMEM_RegWrite(reg_wr_exmem), 
-    .MEMWB_RegWrite(reg_wr_memwb), 
-    .ForwardA(fwd_a), 
-    .ForwardB(fwd_b)
+// Updated to use data_forward_ctrl
+data_forward_ctrl fd(
+    .id_ex_rs_addr(ifid_rs_idex), 
+    .id_ex_rt_addr(ifid_rt_idex), 
+    .ex_mem_rd_addr(exmem_reg_dst_out), 
+    .mem_wb_rd_addr(memwb_dst_out), 
+    .ex_mem_we(reg_wr_exmem), 
+    .mem_wb_we(reg_wr_memwb), 
+    .fwd_mux_a(fwd_a), 
+    .fwd_mux_b(fwd_b)
 );
 
 always @(*) begin
