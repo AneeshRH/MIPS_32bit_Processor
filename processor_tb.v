@@ -3,7 +3,7 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 23.05.2026 19:46:12
+// Create Date: 23.05.2026 21:36:46
 // Design Name: 
 // Module Name: processor_tb
 // Project Name: 
@@ -21,32 +21,33 @@
 
 module processor_tb();
     
-    reg clock_sig;
+    // Matched exact names from the waveform screenshot
+    reg clk;
     
-    wire [31:0] probe_write_data, probe_alu_out, probe_data_mem_req;
-    wire [31:0] probe_reg_req1, probe_reg_req2, probe_reg_req3, probe_reg_req4;
-    wire [31:0] probe_rd_addr, probe_tb_writedata;
-    wire [4:0] probe_rd_writereg;
-    wire [29:0] probe_chk_addr;
+    wire [31:0] write_data_check, alu_out_check, data_mem_req_output;
+    wire [31:0] reg_mem_req_output1, reg_mem_req_output2, reg_mem_req_output3, reg_mem_req_output4;
+    wire [31:0] rd_addr, tb_writedata;
+    wire [4:0] rd_writereg;
+    wire [29:0] check_addr;
 
-    // Instantiating the updated top module (processor_top)
+    // Instantiating the updated top module, bridging new port names to your original waveform signals
     processor_top dut(
-        .clock(clock_sig), 
-        .dbg_reg_mem_req4(probe_reg_req4), 
-        .dbg_write_data_chk(probe_write_data), 
-        .dbg_chk_addr(probe_chk_addr),  
-        .dbg_data_mem_req(probe_data_mem_req),
-        .dbg_reg_mem_req1(probe_reg_req1),
-        .dbg_reg_mem_req2(probe_reg_req2),
-        .dbg_reg_mem_req3(probe_reg_req3),
-        .dbg_alu_out(probe_alu_out), 
-        .dbg_rd_addr(probe_rd_addr),
-        .dbg_tb_writedata(probe_tb_writedata), 
-        .dbg_rd_writereg(probe_rd_writereg)
+        .clock(clk), 
+        .dbg_reg_mem_req4(reg_mem_req_output4), 
+        .dbg_write_data_chk(write_data_check), 
+        .dbg_chk_addr(check_addr),  
+        .dbg_data_mem_req(data_mem_req_output),
+        .dbg_reg_mem_req1(reg_mem_req_output1),
+        .dbg_reg_mem_req2(reg_mem_req_output2),
+        .dbg_reg_mem_req3(reg_mem_req_output3),
+        .dbg_alu_out(alu_out_check), 
+        .dbg_rd_addr(rd_addr),
+        .dbg_tb_writedata(tb_writedata), 
+        .dbg_rd_writereg(rd_writereg)
     );
 
     initial begin
-        clock_sig = 0;
+        clk = 0;
     end
     
     initial begin
@@ -54,7 +55,7 @@ module processor_tb();
     end
     
     always begin
-        #5 clock_sig = ~clock_sig;
+        #5 clk = ~clk;
     end
 
 endmodule
