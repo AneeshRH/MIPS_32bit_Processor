@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 17.05.2025 23:17:13
+// Create Date: 17.05.2026 23:17:13
 // Design Name: 
-// Module Name: IFID_reg
+// Module Name: pipeline_reg_if_id
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -19,18 +19,22 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
+module pipeline_reg_if_id(
+    input [31:0] mem_instr_in, next_pc_in,
+    input clk_signal,
+    output [31:0] instr_fwd_out, pc_fwd_out
+);
 
-module IFID_reg(
-input [31:0] instruction_memory, pc_next,
-input clk,
-output [31:0] instruction_out, pc_out
-    );
-reg [31:0] a,b;
-initial {a,b} = 64'b0;
-always@(posedge clk) begin
-a<=instruction_memory;
-b<=pc_next;
+reg [31:0] reg_instr, reg_pc;
+
+initial {reg_instr, reg_pc} = 64'b0;
+
+always @(posedge clk_signal) begin
+    reg_instr <= mem_instr_in;
+    reg_pc <= next_pc_in;
 end
-assign instruction_out=a;
-assign pc_out=b;
+
+assign instr_fwd_out = reg_instr;
+assign pc_fwd_out = reg_pc;
+
 endmodule
