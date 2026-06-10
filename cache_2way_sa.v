@@ -1,24 +1,5 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Module Name : cache_2way_sa
-// Description : 2-Way Set-Associative Data Cache with LRU Replacement
-//               Drop-in replacement for data_memory_unit.v
-//
-// Cache Configuration:
-//   - 4 sets, 2 ways  (8 cache lines total)
-//   - Block size      : 1 word (32-bit), word-granular transfers
-//   - Write policy    : Write-through (write hits update cache + memory)
-//   - Allocate policy : Write-allocate (write miss → allocate in cache)
-//   - Replacement     : True LRU (1-bit per set tracks MRU way)
-//
-// Address Breakdown (word address = mem_addr_in[31:2]):
-//   [31:4]  → tag   (28 bits)
-//   [3:2]   → set   ( 2 bits → 4 sets)
-//   [1:0]   → byte offset (ignored; word-aligned access only)
-//
-// Port interface is identical to data_memory_unit so processor_top.v
-// needs only a one-line instance-name change.
-//////////////////////////////////////////////////////////////////////////////////
+
 
 module cache_2way_sa (
     input         clock_sig,
@@ -32,9 +13,7 @@ module cache_2way_sa (
     output [29:0] probe_word_addr
 );
 
-    // -------------------------------------------------------------------------
-    // Parameters
-    // -------------------------------------------------------------------------
+
     parameter NUM_SETS  = 4;
     parameter NUM_WAYS  = 2;
 
